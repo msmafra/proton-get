@@ -8,3 +8,8 @@ To install it to your $HOME/.local/bin
 ```
 ./setup.sh
 ```
+
+## Usage
+```
+proton-ge
+```
