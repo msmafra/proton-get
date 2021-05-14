@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+#################################################################
+#                                                               #
+#             Proton-GE downloader and installer                #
+#                         Version: 1.0.0                        #
+#                       Copyright (C) 2021                      #
+#           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
+#       Licensed under the GNU General Public License v3.0      #
+#                                                               #
+#           https://gitlab.com/msmafra/proton-get               #
+#                                                               #
+#################################################################
+
+#{{{ Bash settings
+set -o errexit
+set -o errtrace
+set -o nounset
+set -o pipefail
+#set -o xtrace
+#}}}
+
+main() {
+    trap exit_stage_left EXIT ERR # Elegant exit
+    tempDir="$(mktemp --directory --suffix=xidel)"
+    requirements "${tempDir}"
+    protonGet "${tempDir}"
+}
+
+exit_stage_left() {
+    unset tempDir xidelUrl xidelFile execXidel toolsFolder geReleasesUrl tempDir latestGe protonGeFile protonGeRemote protonGeLocal
+    printf "\n%s\n" "Bye!"
+}
+
+requirements() {
+    local tempDir
+    local xidelUrl
+    local xidelFile
+    tempDir="${1}"
+    xidelUrl="https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz"
+    xidelFile="$(printf "%s" "https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz" | awk -F"/" '{print $9}')"
+
+    printf "%s\n" "This script requires bash and more importantly xidel"
+    printf "%s\n%s\n" "https://github.com/benibela/xidel/" "https://www.videlibri.de/xidel.html"
+    printf "%s\n" "Downloading xidel 0.9.8 (latest stable at 20210508) to ${tempDir}"
+    cd "${tempDir}" && pwd
+    wget --quiet --content-disposition --continue "${xidelUrl}"
+    printf "\n%s\n" "Extraindo arquivos em ${tempDir}:"
+    tar --get --verbose --file "${xidelFile}"
+
+}
+protonGet() {
+    local execXidel
+    local toolsFolder
+    local geReleasesUrl
+    local tempDir
+    local latestGe
+    local protonGeFile
+    local protonGeRemote
+    local protonGeLocal
+
+    # execXidel="$("${HOME}"/.local/bin/xidel)"
+    if command -v xidel > /dev/null 2>&1;then
+        execXidel="$(command -v xidel)"
+    else
+        execXidel="${tempDir}/xidel"
+    fi
+    toolsFolder="${HOME}/.local/share/Steam/compatibilitytools.d"
+    geReleasesUrl="https://github.com/GloriousEggroll/proton-ge-custom/releases"
+    tempDir="${1}"
+    latestGe="$("${execXidel}" -s "${geReleasesUrl}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | head -n 1)"
+    protonGeFile="$(printf "%s" "${latestGe}" | awk -F"/" '{print $9}')"
+    protonGeRemote="${protonGeFile%%.tar*}"
+    protonGeLocal="$(find "${toolsFolder}/" -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --reverse | head --lines=1)"
+
+    printf "\n%s\n" "Releases disponíveis:"
+    "${execXidel}" --silent "${geReleasesUrl}" --xquery '//a/@href[contains(., ".tar.gz")]' |
+    grep "releases" | awk '{printf "%s %s\n","https://github.com", $1}'
+
+    # Current installed ones:
+    printf "\n%s\n" "Releases instalados:"
+    find "${HOME}"/.local/share/Steam/compatibilitytools.d/ -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --reverse
+
+    # Compare if is already installed before download
+    if [[ ! ${protonGeRemote} = "${protonGeLocal}" ]];then
+        echo wget --continue "${latestGe}"
+        echo tar --get --verbose --file "${protonGeFile}" --directory="${toolsFolder}"
+    else
+        printf "\n%s is already installed\n" "${protonGeFile}"
+    fi
+
+}
+
+main "${@}"
