@@ -20,15 +20,19 @@ set -o pipefail
 #}}}
 
 main() {
+
     trap exit_stage_left EXIT ERR # Elegant exit
     tempDir="$(mktemp --directory --suffix=xidel)"
     requirements "${tempDir}"
     protonGet "${tempDir}"
+    
 }
 
 exit_stage_left() {
+
     unset tempDir xidelUrl xidelFile execXidel toolsFolder geReleasesUrl tempDir latestGe protonGeFile protonGeRemote protonGeLocal
     printf "\n%s\n" "Bye!"
+
 }
 
 requirements() {
@@ -61,10 +65,15 @@ protonGet() {
     tempDir="${1}"
     # execXidel="$("${HOME}"/.local/bin/xidel)"
     if command -v xidel > /dev/null 2>&1;then
+
         execXidel="$(command -v xidel)"
+
     else
+
         execXidel="${tempDir}/xidel"
+        
     fi
+
     toolsFolder="${HOME}/.local/share/Steam/compatibilitytools.d"
     geReleasesUrl="https://github.com/GloriousEggroll/proton-ge-custom/releases"
     tempDir="${1}"
@@ -83,10 +92,16 @@ protonGet() {
 
     # Compare if is already installed before download
     if [[ ! ${protonGeRemote} = "${protonGeLocal}" ]];then
-        wget --continue "${latestGe}"
-        tar --get --verbose --file "${protonGeFile}" --directory="${toolsFolder}"
+
+        printf "\n%s\n" "wget --continue ${latestGe}"
+        \wget --quiet --show-progress --progress=bar --continue "${latestGe}"
+        printf "\n%s\n" "tar --get --verbose --file ${protonGeFile} --directory=${toolsFolder}"
+        \tar --get --verbose --file "${protonGeFile}" --directory="${toolsFolder}"
+
     else
+
         printf "\n%s is already installed\n" "${protonGeFile}"
+
     fi
 
 }
