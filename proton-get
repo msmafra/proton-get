@@ -83,8 +83,8 @@ protonGet() {
 
     # Compare if is already installed before download
     if [[ ! ${protonGeRemote} = "${protonGeLocal}" ]];then
-        echo wget --continue "${latestGe}"
-        echo tar --get --verbose --file "${protonGeFile}" --directory="${toolsFolder}"
+        wget --continue "${latestGe}"
+        tar --get --verbose --file "${protonGeFile}" --directory="${toolsFolder}"
     else
         printf "\n%s is already installed\n" "${protonGeFile}"
     fi
