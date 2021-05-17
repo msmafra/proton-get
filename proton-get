@@ -43,8 +43,13 @@ requirements() {
     xidelUrl="https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz"
     xidelFile="$(printf "%s" "https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz" | awk -F"/" '{print $9}')"
 
-    printf "%s\n" "This script requires bash and more importantly xidel"
+    printf "%s\n" "This script requires bash and more importantly xidel."
+    printf "%s\n" "This script will download and extract xidel to a temporary folder: ${tempDir}."
+
+    printf "\n%s\n" "Information about Xidel:"
     printf "%s\n%s\n" "https://github.com/benibela/xidel/" "https://www.videlibri.de/xidel.html"
+    
+    
     printf "%s\n" "Downloading xidel 0.9.8 (latest stable at 20210508) to ${tempDir}"
     cd "${tempDir}" && pwd
     wget --quiet --content-disposition --continue "${xidelUrl}"
