@@ -49,15 +49,16 @@ requirements() {
 
 }
 protonGet() {
+    local tempDir
     local execXidel
     local toolsFolder
     local geReleasesUrl
-    local tempDir
     local latestGe
     local protonGeFile
     local protonGeRemote
     local protonGeLocal
 
+    tempDir="${1}"
     # execXidel="$("${HOME}"/.local/bin/xidel)"
     if command -v xidel > /dev/null 2>&1;then
         execXidel="$(command -v xidel)"
