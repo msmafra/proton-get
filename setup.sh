@@ -50,6 +50,7 @@ installScript() {
 
             printf "%s" "The ${current_user_bin} directory doesn't exists and will now be created."
             mkdir --verbose --parent "${current_user_bin}"
+            printf "%s %s %s" "Close this terminal window and open a new one, so" "${current_user_bin}" "will be included in your current PATH variable."
 
         fi
 
@@ -84,7 +85,7 @@ installScript() {
         fi
 
         "${current_user_bin}"/proton-get --version
-        
+
     else
 
         printf "%s\n" "-> Usage of superuser/elevated privileges, is not allowed. Exiting <-"

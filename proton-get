@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #             Proton-GE downloader and installer                #
-#                         Version: 1.2.0                        #
+#                         Version: 1.2.2                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -23,7 +23,7 @@ declare protonget_version
 declare which_arg
 declare xidel_exec
 
-protonget_version="1.2.0"
+protonget_version="1.2.2"
 which_arg="${1:-}"
 
 if [[ "${which_arg}" =~ -v|--version ]];then
@@ -47,7 +47,7 @@ main() {
 exit_stage_left() {
 
     unset temp_dir xidel_url xidel_file exec_xidel steam_tools_folder ge_releases_url ge_latest ge_proton_file ge_proton_remote ge_proton_local
-    printf "\n%s\n" "Bye!"
+    printf "\n%s\n" "All done. Bye!"
 
 }
 
@@ -108,7 +108,7 @@ protonGet() {
         ge_proton_remote="${ge_proton_file%%.tar*}"
         ge_proton_local="$(find "${steam_tools_folder}/" -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --reverse | head --lines=1)"
 
-        # Available ones:
+        # Available ones
         printf "\n-> %s\n" "Available GE releases:"
         "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' |
         grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}'
@@ -129,8 +129,8 @@ protonGet() {
             printf "\n-> Extracting using:\ntar --get --verbose --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
             tar --get --verbose --file "${ge_proton_file}" --directory="${steam_tools_folder}"
 
-            printf "\n%s was extracted/installed in %s\n" "-> ${ge_proton_file}" "${steam_tools_folder}"
-            printf "\n-> All files were downloaded to the temporary folder %s\n" "${temp_dir}"
+            printf "\n%s was extracted/installed into %s\n" "-> ${ge_proton_file}" "${steam_tools_folder}"
+            printf "\n-> All files were downloaded to the temporary folder %s before being installed.\n" "${temp_dir}"
 
         else
 
@@ -140,7 +140,7 @@ protonGet() {
 
     else
 
-        printf "%s\n" "-> Usage of superuser/elevated privileges, is not allowed. Exiting <-"
+        printf "%s\n" "-> Usage of superuser(elevated privileges), is not allowed. Exiting <-"
         exit 1
 
     fi
