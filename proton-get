@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #             Proton-GE downloader and installer                #
-#                         Version: 1.1.1                        #
+#                         Version: 1.2.0                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -23,7 +23,7 @@ declare protonget_version
 declare which_arg
 declare xidel_exec
 
-protonget_version="1.0.1"
+protonget_version="1.2.0"
 which_arg="${1:-}"
 
 if [[ "${which_arg}" =~ -v|--version ]];then
