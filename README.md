@@ -1,6 +1,6 @@
 # Proton Get
 
-![Proton GE Downloader](proton-get.png)
+![Proton GE Downloader](images/proton-get.png)
 
 Gets the latest version, compares with the installed one(s) of [Proton GE](https://github.com/GloriousEggroll/proton-ge-custom), downloads it and extracts to $HOME/.local/share/Steam/compatibilitytools.d/.
 
