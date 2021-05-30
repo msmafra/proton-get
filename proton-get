@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #             Proton-GE downloader and installer                #
-#                         Version: 1.2.2                        #
+#                         Version: 1.2.5                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -19,26 +19,14 @@ set -o pipefail
 # set -o xtrace
 #}}}
 
-declare protonget_version
 declare which_arg
-declare xidel_exec
-
-protonget_version="1.2.2"
 which_arg="${1:-}"
-
-if [[ "${which_arg}" =~ -v|--version ]];then
-    printf "proton-get version %s\n" "${protonget_version}"
-    printf "\n"
-    if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
-        xidel_exec="$(command -v xidel > /dev/null 2>&1)"
-        "${xidel_exec}" --version
-    fi
-    exit 0
-fi
-
 
 main() {
 
+    if [[ "${which_arg}" =~ -v|--version ]];then
+        show_version
+    fi
     protonGet
     trap exit_stage_left EXIT ERR # Elegant exit
 
@@ -49,6 +37,23 @@ exit_stage_left() {
     unset temp_dir xidel_url xidel_file exec_xidel steam_tools_folder ge_releases_url ge_latest ge_proton_file ge_proton_remote ge_proton_local
     printf "\n%s\n" "All done. Bye!"
 
+}
+
+show_version() {
+    local protonget_version
+    local xidel_exec
+
+    protonget_version="1.2.5"
+
+    printf "proton-get version %s\n" "${protonget_version}"
+    printf "\n"
+    if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
+        xidel_exec="$(command -v xidel > /dev/null 2>&1)"
+        "${xidel_exec}" --version
+    fi
+    if [[ "${which_arg}" =~ -v|--version ]];then
+        exit 0
+    fi
 }
 
 protonGet() {
@@ -71,6 +76,8 @@ protonGet() {
 
         temp_dir="$(mktemp --directory --suffix=ProtonGet)"
 
+        show_version
+
         if [[ ! -f "${HOME}"/.local/bin/xidel ]];then
 
             # Required
@@ -86,14 +93,14 @@ protonGet() {
 
             printf "\n%s\n" "-> Extracting files to ${temp_dir}:"
             cd "${temp_dir}" && pwd
-            tar --get --verbose --file "${xidel_file}" --directory="${temp_dir}"
+            tar --get --file "${xidel_file}" --directory="${temp_dir}"
 
         fi
 
         if [[ -f "${HOME}"/.local/bin/xidel ]];then
 
             exec_xidel="${HOME}/.local/bin/xidel"
-            printf "\n-> xidel found. using from %s" "${exec_xidel}"
+            printf "%s \n-> %s %s\n" "-> An installed version of xidel found locally." " Using from" "${exec_xidel}."
 
         else
 
@@ -115,7 +122,7 @@ protonGet() {
 
         # Current installed ones:
         printf "\n-> %s\n" "Installed GE releases:"
-        find "${HOME}"/.local/share/Steam/compatibilitytools.d/ -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --reverse
+        find "${steam_tools_folder}/" -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --reverse
 
         cd "${temp_dir}" && pwd
         # Check if is already installed before download
@@ -126,8 +133,8 @@ protonGet() {
             printf "\n-> Downloading using:\nwget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${ge_latest}"
             wget --quiet --show-progress --progress=bar --content-disposition --continue "${ge_latest}"
 
-            printf "\n-> Extracting using:\ntar --get --verbose --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
-            tar --get --verbose --file "${ge_proton_file}" --directory="${steam_tools_folder}"
+            printf "\n-> Extracting using:\ntar --get --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
+            tar --get --file "${ge_proton_file}" --directory="${steam_tools_folder}"
 
             printf "\n%s was extracted/installed into %s\n" "-> ${ge_proton_file}" "${steam_tools_folder}"
             printf "\n-> All files were downloaded to the temporary folder %s before being installed.\n" "${temp_dir}"
