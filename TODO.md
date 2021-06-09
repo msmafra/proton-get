@@ -1,0 +1,2 @@
+- [ ] proton-get check for a newer version of itself (???);
+- [ ] crontab job and notification with notify-send (???);
