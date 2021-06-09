@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #             Proton-GE downloader and installer                #
-#                         Version: 1.2.5                        #
+#                         Version: 1.3.0                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -16,7 +16,7 @@ set -o errexit
 set -o errtrace
 set -o nounset
 set -o pipefail
-# set -o xtrace
+set -o xtrace
 #}}}
 
 declare which_arg
@@ -43,7 +43,7 @@ show_version() {
     local protonget_version
     local xidel_exec
 
-    protonget_version="1.2.5"
+    protonget_version="1.3.0"
 
     printf "proton-get version %s\n" "${protonget_version}"
     printf "\n"
@@ -113,7 +113,7 @@ protonGet() {
         ge_latest="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | head -n 1)"
         ge_proton_file="$(printf "%s" "${ge_latest}" | awk -F"/" '{print $9}')"
         ge_proton_remote="${ge_proton_file%%.tar*}"
-        ge_proton_local="$(find "${steam_tools_folder}/" -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --reverse | head --lines=1)"
+        ge_proton_local="$(find "${steam_tools_folder}/" -maxdepth 1 -name "*Proton*" -type d | awk -F"/" '{print $8}' | sort --version-sort --reverse | head --lines=1)"
 
         # Available ones
         printf "\n-> %s\n" "Available GE releases:"
@@ -131,10 +131,10 @@ protonGet() {
             printf "\n-> A new GE release is available: %s \n%s \n" "${ge_proton_remote}" "${ge_latest}"
 
             printf "\n-> Downloading using:\nwget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${ge_latest}"
-            wget --quiet --show-progress --progress=bar --content-disposition --continue "${ge_latest}"
+            echo wget --quiet --show-progress --progress=bar --content-disposition --continue "${ge_latest}"
 
             printf "\n-> Extracting using:\ntar --get --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
-            tar --get --file "${ge_proton_file}" --directory="${steam_tools_folder}"
+            echo tar --get --file "${ge_proton_file}" --directory="${steam_tools_folder}"
 
             printf "\n%s was extracted/installed into %s\n" "-> ${ge_proton_file}" "${steam_tools_folder}"
             printf "\n-> All files were downloaded to the temporary folder %s before being installed.\n" "${temp_dir}"
