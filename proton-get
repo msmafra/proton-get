@@ -97,9 +97,10 @@ check_update() {
 
         if [[ -d "${current_user_bin}" ]];then
 
-            cd "${script_folder}" && pwd
             printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
+            cd "${script_folder}" && pwd
             \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
+            cd "${script_folder}" && pwd
             install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
             exit 0
 
@@ -109,6 +110,7 @@ check_update() {
             printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
             cd "${current_user_bin}" && pwd
             \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
+            cd "${script_folder}" && pwd
             install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
             exit 0
 
@@ -211,7 +213,6 @@ run_proton_get() {
             printf "\n-> A new GE release is available: %s \n%s \n" "${ge_proton_remote}" "${ge_latest}"
             if [[ ! "$(command -v notify-send > /dev/null 2>&1)" ]];then
 
-                # notify-send --urgency=critical " ${ge_proton_file/%.tar.gz/} is the most recent one installed" -i 'dialog-warning'
                 notify-send --urgency=critical "Proton Get" "A new GE release is available: ${ge_proton_remote} ${ge_latest}" -i 'dialog-warning'
 
             fi
