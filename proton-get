@@ -93,7 +93,7 @@ check_update() {
     printf "Installed version: %s\n" "${protonget_version}"
     printf "Available version: %s\n" "${available_version}"
 
-    if [[ ! "${protonget_version}" = "${available_version}" ]];then
+    if [[ ! "${protonget_version//./}" -gt "${available_version//./}" ]];then
 
         if [[ -d "${current_user_bin}" ]];then
 
@@ -103,6 +103,7 @@ check_update() {
             cd "${current_user_bin}" && pwd
             install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
             exit 0
+
         fi
 
     # else
