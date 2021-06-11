@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #################################################################
 #                                                               #
-#             Proton-GE downloader and installer                #
-#                         Version: 1.4.0                        #
+#        Proton-GE downloader and installer - proton-get        #
+#                         Version: 1.5.0                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -20,40 +20,102 @@ set -o pipefail
 #}}}
 
 declare which_arg
+export protonget_version
+export script_folder
+export current_user_bin
+
 which_arg="${1:-}"
+protonget_version="1.5.0"
+script_folder="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+current_user_bin="${HOME}/.local/bin"
 
 main() {
 
+    printf "Argument: %s\n" "${which_arg}"
+
     if [[ "${which_arg}" =~ -v|--version ]];then
+
         show_version
+
+    elif [[ "${which_arg}" =~ -u|--update ]];then
+
+        check_update
+
+    else
+
+        run_proton_get
+
     fi
-    run_proton_get
+
     trap exit_stage_left EXIT ERR # Elegant exit
 
 }
 
 exit_stage_left() {
 
-    unset temp_dir xidel_url xidel_file exec_xidel steam_tools_folder ge_releases_url ge_latest ge_proton_file ge_proton_remote ge_proton_local
+    unset temp_dir xidel_url xidel_file exec_xidel steam_tools_folder ge_releases_url ge_latest ge_proton_file ge_proton_remote ge_proton_local protonget_version
     printf "\n%s\n" "All done. Bye!"
 
 }
 
 show_version() {
-    local protonget_version
+
     local xidel_exec
 
-    protonget_version="1.4.0"
-
+    # printf "%s" "${script_folder}"
     printf "proton-get version %s\n" "${protonget_version}"
-    printf "\n"
+
     if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
         xidel_exec="$(command -v xidel > /dev/null 2>&1)"
         "${xidel_exec}" --version
     fi
+
     if [[ "${which_arg}" =~ -v|--version ]];then
         exit 0
     fi
+
+}
+
+check_update() {
+
+    local raw_file
+    local available_version
+    local user_id
+    local user_name
+    local script_mode
+
+    raw_file="https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get"
+    available_version="$(curl -sL "${raw_file}" | grep "protonget_version=" | awk -F'"' '{print $2}')"
+    user_id="$(id --user)"
+    user_name="$(id --user --name)"
+    script_mode="740"
+
+    printf "Installed version: %s\n" "${protonget_version}"
+    printf "Available version: %s\n" "${available_version}"
+
+    if [[ ! "${protonget_version}" = "${available_version}" ]];then
+
+        if [[ -d "${current_user_bin}" ]];then
+
+            cd "${script_folder}" && pwd
+            printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
+            \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
+            install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
+            exit 0
+
+        else
+
+            printf "Changing to %s to obtain the update\n" "${current_user_bin}"
+            printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
+            cd "${current_user_bin}" && pwd
+            \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
+            install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
+            exit 0
+
+        fi
+
+    fi
+
 }
 
 run_proton_get() {
@@ -62,9 +124,10 @@ run_proton_get() {
     local dry_run
 
     user_id="$(id --user)"
+
     if [[ "${which_arg}" =~ -n|--dryrun ]];then
 
-        printf "%s\n" "Dry Run Mode"
+        printf "\n%s\n" "Dry Run Mode"
 
     fi
 
@@ -115,6 +178,7 @@ run_proton_get() {
             printf "\n-> xidel found. using from %s" "${exec_xidel}"
 
         fi
+
         steam_tools_folder="${HOME}/.local/share/Steam/compatibilitytools.d"
         ge_releases_url="https://github.com/GloriousEggroll/proton-ge-custom/releases"
         ge_latest="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | head -n 1)"
