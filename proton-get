@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #        Proton-GE downloader and installer - proton-get        #
-#                         Version: 1.5.0                        #
+#                         Version: 1.6.0                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -25,7 +25,7 @@ export script_folder
 export current_user_bin
 
 which_arg="${1:-}"
-protonget_version="1.5.0"
+protonget_version="1.6.0"
 script_folder="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 current_user_bin="${HOME}/.local/bin"
 
@@ -85,7 +85,7 @@ check_update() {
     local script_mode
 
     raw_file="https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get"
-    available_version="$(curl -s "${raw_file}" | grep "protonget_version=" | awk -F'"' '{print $2}')"
+    available_version="$(curl --silent "${raw_file}" | tee /dev/null | grep --max-count=1 "protonget_version=" | awk -F'"' '{print $2}')"
     user_id="$(id --user)"
     user_name="$(id --user --name)"
     script_mode="740"
@@ -97,19 +97,18 @@ check_update() {
 
         if [[ -d "${current_user_bin}" ]];then
 
-            printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
+            printf "%s %s\n" "-> Downloading " "${available_version}"
             cd "${current_user_bin}" && pwd
             \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
             cd "${current_user_bin}" && pwd
             install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
             exit 0
-
-        else
-
-            printf "%s\n" "Can't be updated."
-            exit 0
-
         fi
+
+    # else
+    #
+    #     printf "%s\n" "Can't be updated."
+    #     exit 0
 
     fi
 
@@ -124,7 +123,7 @@ run_proton_get() {
 
     if [[ "${which_arg}" =~ -n|--dryrun ]];then
 
-        printf "\n%s\n" "Dry Run Mode"
+        printf "%s\n" "-> Dry Run Mode <-"
 
     fi
 
