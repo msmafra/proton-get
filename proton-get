@@ -53,7 +53,7 @@ main() {
 
 exit_stage_left() {
 
-    unset temp_dir xidel_url xidel_file exec_xidel steam_tools_folder ge_releases_url ge_latest ge_proton_file ge_proton_remote ge_proton_local protonget_version
+    unset which_arg protonget_version script_folder current_user_bin xidel_exec raw_file available_version user_id user_name script_mode dry_run temp_dir xidel_url xidel_file exec_xidel steam_tools_folder ge_releases_url ge_latest ge_proton_file ge_proton_remote ge_proton_local
     printf "\n%s\n" "All done. Bye!"
 
 }
@@ -85,7 +85,7 @@ check_update() {
     local script_mode
 
     raw_file="https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get"
-    available_version="$(curl -sL "${raw_file}" | grep "protonget_version=" | awk -F'"' '{print $2}')"
+    available_version="$(curl -s "${raw_file}" | grep "protonget_version=" | awk -F'"' '{print $2}')"
     user_id="$(id --user)"
     user_name="$(id --user --name)"
     script_mode="740"
@@ -98,20 +98,15 @@ check_update() {
         if [[ -d "${current_user_bin}" ]];then
 
             printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
-            cd "${script_folder}" && pwd
+            cd "${current_user_bin}" && pwd
             \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
-            cd "${script_folder}" && pwd
+            cd "${current_user_bin}" && pwd
             install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
             exit 0
 
         else
 
-            printf "Changing to %s to obtain the update\n" "${current_user_bin}"
-            printf "\wget --quiet --show-progress --progress=bar --content-disposition --continue %s\n" "${raw_file}"
-            cd "${current_user_bin}" && pwd
-            \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
-            cd "${script_folder}" && pwd
-            install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
+            printf "%s\n" "Can't be updated."
             exit 0
 
         fi
