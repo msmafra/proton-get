@@ -57,7 +57,7 @@ installScript() {
         path_xidel="${current_user_bin}/"
         xidel_url="https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz"
         xidel_file="$(printf "%s" "https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz" | awk -F"/" '{print $9}')"
-        temp_dir="$(mktemp --directory --suffix=xidel)"
+        temp_dir="$(mktemp --directory --suffix=xidel > /dev/null 2>&1)"
 
         printf "%s %s \n" "-> Installing proton-get to" "${current_user_bin}"
         install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${script_folder}"/proton-get --target-directory="${current_user_bin}"
