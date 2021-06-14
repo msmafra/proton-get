@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 install() {
-    
-if [[ "${user_id}" -ne 0 ]];then
 
     local CURRENT_USER_BIN
     local user_id
@@ -13,6 +11,9 @@ if [[ "${user_id}" -ne 0 ]];then
     user_id="$(id --user)"
     user_name="$(id --user --name)"
     script_mode="740"
+
+if [[ "${user_id}" -ne 0 ]];then
+
 
     cd "${CURRENT_USER_BIN}" && pwd
     curl -fsSL https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get >> proton-get
