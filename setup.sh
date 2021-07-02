@@ -12,7 +12,7 @@ install_xidel="${1:-}"
 main() {
 
     trap exit_stage_left EXIT ERR # Elegant exit
-    installScript "${install_xidel:-}"
+    install_script "${install_xidel:-}"
 
 }
 
@@ -23,7 +23,7 @@ exit_stage_left() {
 
 }
 
-installScript() {
+install_script() {
 
     local current_user_bin
     local -i user_id
@@ -94,6 +94,5 @@ installScript() {
     fi
 
 }
-
 
 main "${@}"

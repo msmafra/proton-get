@@ -16,7 +16,7 @@ To install it. Clone, get into its folder and run ./setup.sh.:
 ❯ cd proton-get
 ❯ ./setup.sh
 ```
-### Also install Xidel
+### Install with Xidel
 If you wish to install xidel too, not just use it from the temporary directory, add "1" as a parameter for setup.sh
 
 ```
@@ -25,28 +25,25 @@ If you wish to install xidel too, not just use it from the temporary directory, 
 ❯ ./setup.sh 1
 ```
 
-## Usage
 As setup.sh will install the proton-get into *$HOME/.local/bin* and make it executable. If it is in your user's **$PATH** variable, it will be executed from any place.
-```
-❯ proton-get
-```
-### PATH
+### The PATH variable
 
 The executables will be placed in *$HOME/.local/bin*, so after the **setup.sh** install them, the reopening of the terminal window will enable them.
+## Usage
+To check and install the newest version or Proton-GE-Custom use -i or --install:
+```
+❯ proton-get -i
+```
+To check for a new version of proton-get use -c --check:
+```
+❯ proton-get -c
+```
 
-## Parameters for proton-get
+### Parameters for proton-get
+```
+-c or --check will just check for a new version of Proton-GE-Custom
+-i or --install will download and extract Proton-GE-Custom
 -n or --dryrun  will run proton-get without downloading and installing anything
-```
-proton-get -n
-proton-get --dryrun
-```
--u or --update will check and install the lastest version of proton-get
-```
- proton-get -u
- proton-get --update
- ```
+-u or --update will check and install the latest version of proton-get
 -v or --version will show the current proton-get version
-```
-proton-get -v
-proton-get --version
 ```
