@@ -47,3 +47,10 @@ To check for a new version of proton-get use -c --check:
 -u or --update will check and install the latest version of proton-get
 -v or --version will show the current proton-get version
 ```
+
+## Update problems? Run this:
+`
+cd /tmp && curl --silent https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get > ~/.local/bin/proton-get
+`
+
+It will replace the contents of your current proton-get disrregarding its version. 
