@@ -1,4 +1,6 @@
 - [x] proton-get check for a newer version of itself (???);
 - [ ] crontab job and notification with notify-send (???);
-- [ ] check space ocupied by the currente installed one. account for BTRFS;
+- [ ] check space ocupied by the current installed one(s). Account for BTRFS;
 - [x] implement proton-get --update to update without the need of git cloning;
+- [x] notify-send notification for systems with it installed;
+- [ ] implement space ocupied notification/number of versions installed;
