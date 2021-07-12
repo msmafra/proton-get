@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 2.1.0                        #
+#                         Version: 2.1.1                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -43,7 +43,7 @@ declare ge_discord_url
 
 ge_proton_title="Proton-GE-Custom"
 which_arg="${1:-}"
-PROTONGET_VERSION="2.1.0"
+PROTONGET_VERSION="2.1.1"
 SCRIPT_FOLDER="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 CURRENT_USER_BIN="${HOME}/.local/bin"
 user_id="$(id --user)"
@@ -77,6 +77,7 @@ main() {
 
         if [[ "${which_arg}" =~ -c|--check ]];then
 
+            show_version
             check_update
             exit 0
 
@@ -87,6 +88,7 @@ main() {
                 printf "%s\n\n" "-> Dry Run Mode"
 
             fi
+
             show_version
             run_protonget
             exit 0
@@ -228,19 +230,16 @@ check_update() {
 
                 printf "Available version of proton-get: %s\n" "${ge_proton_remote_version}"
                 "${notify_send}" --urgency=critical "Proton Get" "A new ${ge_proton_title} release is available: ${ge_proton_remote_version}" -i 'dialog-warning'
-                exit 0
 
             else
 
                 printf "Available version of proton-get: %s\n" "${ge_proton_remote_version}"
-                exit 0
 
             fi
 
         else
 
             printf "No new version available. Your latest installed version %s.\n" "${ge_proton_local_version}"
-            exit 0
 
         fi
     fi
