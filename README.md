@@ -46,6 +46,9 @@ To check for a new version of proton-get use -c --check:
 -n or --dryrun  will run proton-get without downloading and installing anything
 -u or --update will check and install the latest version of proton-get
 -v or --version will show the current proton-get version
+-t or --time <hour>		will create a schedule to run proton-get --check
+                Running proton-get --time 20 will schedule it to run every day at 20:00
+                <hour> can be a value from 0 to 23
 ```
 
 ## Update problems? Run this:
@@ -53,4 +56,4 @@ To check for a new version of proton-get use -c --check:
 cd /tmp && curl --silent https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get > ~/.local/bin/proton-get
 `
 
-It will replace the contents of your current proton-get disrregarding its version. 
+It will replace the contents of your current proton-get disrregarding its version.

@@ -22,7 +22,6 @@ set -o pipefail
 #}}}
 
 declare ge_proton_title
-declare which_arg
 export PROTONGET_VERSION
 export SCRIPT_FOLDER
 export CURRENT_USER_BIN
@@ -40,9 +39,9 @@ declare ge_proton_remote_version
 declare ge_proton_local_version
 declare ge_author
 declare ge_discord_url
+declare which_arg_0
 
 ge_proton_title="Proton-GE-Custom"
-which_arg="${1:-}"
 PROTONGET_VERSION="2.1.1"
 SCRIPT_FOLDER="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 CURRENT_USER_BIN="${HOME}/.local/bin"
@@ -60,30 +59,32 @@ ge_proton_remote_version="${ge_proton_file%%.tar*}"
 ge_proton_local_version="$(find "${steam_tools_folder}/" -maxdepth 1 -name '*Proton*' -type d | awk -F"/" '{print $8}' | sort --version-sort --reverse | head --lines=1)"
 ge_author="GloriousEggroll"
 ge_discord_url="https://discord.gg/6y3BdzC"
+which_arg_0="${*}"
+
 
 exit_stage_left() {
 
-    unset -v ge_proton_title which_arg PROTONGET_VERSION SCRIPT_FOLDER CURRENT_USER_BIN user_id user_name temp_dir notify_send exec_xidel steam_tools_folder ge_git_url ge_releases_url ge_latest_url ge_proton_file ge_proton_remote_version ge_proton_local_version ge_author ge_discord_url raw_file available_version script_mode xidel_exec local xidel_url xidel_file ge_count
-    unset -f check_xidel show_version show_usage self_update check_update run_protonget main
+    unset -v ge_proton_title which_arg_0 PROTONGET_VERSION SCRIPT_FOLDER CURRENT_USER_BIN user_id user_name temp_dir notify_send exec_xidel steam_tools_folder ge_git_url ge_releases_url ge_latest_url ge_proton_file ge_proton_remote_version ge_proton_local_version ge_author ge_discord_url raw_file available_version script_mode xidel_exec local xidel_url xidel_file ge_count cron_hour cron_day
+    unset -f check_xidel show_version show_usage self_update check_update run_protonget cron_protonget main
     printf "%s\n" "All done. Bye!"
 
 }
 
 main() {
 
-    printf "%s: %s\n" "-> Argument" "${which_arg:-None}"
+    printf "%s %s %s \n" "-> Arguments" "$#" "${*}"
 
     if [[ "${user_id}" -ne 0 ]];then
 
-        if [[ "${which_arg}" =~ -c|--check ]];then
+        if [[ "${which_arg_0}" =~ -c|--check ]];then
 
             show_version
             check_update
             exit 0
 
-        elif [[ "${which_arg}" =~ -i|--install|-n|--dryrun ]];then
+        elif [[ "${which_arg_0}" =~ -i|--install|-n|--dryrun ]];then
 
-            if [[ "${which_arg}" =~ -n|--dryrun ]];then
+            if [[ "${which_arg_0}" =~ -n|--dryrun ]];then
 
                 printf "%s\n\n" "-> Dry Run Mode"
 
@@ -93,16 +94,30 @@ main() {
             run_protonget
             exit 0
 
-        elif [[ "${which_arg}" =~ -v|--version ]];then
+        elif [[ "${which_arg_0}" =~ -v|--version ]];then
 
             show_version
             exit 0
 
-        elif [[ "${which_arg}" =~ -u|--update ]];then
+        elif [[ "${which_arg_0}" =~ -u|--update ]];then
 
             show_version
             self_update
             exit 0
+
+        elif [[ "${which_arg_0}" =~ -t|--time ]];then
+
+            if [[ $# -ge 2  ]];then
+
+                cron_protonget "${@}"
+                exit 0
+
+            else
+
+                printf "%s\n" "Error"
+                exit 1
+
+            fi
 
         else
 
@@ -174,12 +189,13 @@ show_version() {
 show_usage() {
 
     printf "%s\n" "${ge_proton_title} downloader and installer: proton-get"
-    printf "\n%s\n" "Usage: $0 [argument]"
-    printf "\t%s\n" "-i or --install will download and extract ${ge_proton_title}"
-    printf "\t%s\n" "-c or --check will just check for a new version of ${ge_proton_title}"
-    printf "\t%s\n" "-n or --dryrun  will run proton-get without downloading and installing anything"
-    printf "\t%s\n" "-u or --update will check and install the latest version of proton-get"
-    printf "\t%s\n" "-v or --version will show the current proton-get version"
+    printf "\n%s\n" "Usage: $0 [OPTION] <arguments>"
+    printf "\t%s\t\t\t%s\n" "-i or --install" "will download and extract ${ge_proton_title}"
+    printf "\t%s\t\t\t%s\n" "-c or --check" "will just check for a new version of ${ge_proton_title}"
+    printf "\t%s\t\t\t%s\n" "-n or --dryrun" "will run proton-get without downloading and installing anything"
+    printf "\t%s\t\t\t%s\n" "-u or --update" "will check and install the latest version of proton-get"
+    printf "\t%s\t\t\t%s\n" "-v or --version" "will show the current proton-get version"
+    printf "\t%s\t\t%s\n\t\t\t\t\t%s\n\t\t\t\t\t%s\n" "-t or --time <hour>" "will create a schedule to run proton-get --check" "Running proton-get --time 20 will schedule it to run every day at 20:00" "<hour> can be a value from 0 to 23"
 
 }
 
@@ -220,7 +236,7 @@ self_update() {
 check_update() {
 
 
-    if [[ "${which_arg}" =~ -c|--check ]];then
+    if [[ "${which_arg_0}" =~ -c|--check ]];then
 
         if [[ ! ${ge_proton_remote_version} = "${ge_proton_local_version}" ]];then
 
@@ -242,6 +258,28 @@ check_update() {
             printf "No new version available. Your latest installed version %s.\n" "${ge_proton_local_version}"
 
         fi
+    fi
+
+}
+
+cron_protonget() {
+
+    local cron_hour
+    cron_hour="${*:2}"
+
+    if ! crontab -l | grep ".local/bin/proton-get --check";then
+
+        printf "\n ->Running:\n %s %s %s %s " "(crontab -l 2>/dev/null; echo 00" "${cron_hour}" "* * *" "${CURRENT_USER_BIN}/proton-get --check) | crontab -"
+        (crontab -l 2>/dev/null; echo "00 ${cron_hour} * * * ${CURRENT_USER_BIN}/proton-get --check") | crontab -
+        sleep 3s
+        printf "\n-> Opening crontab to check with %s\n" "crontab -l -u ${USER}"
+        crontab -l
+
+    else
+
+        printf "\n%s \n%s \n" "-> Unfortunetely it can't be changed by proton-get because it requires elevated privileges." "To customize it use crontab -e and use this generated line with the value you provided:"
+        crontab -l 2>/dev/null | grep ".local/bin/proton-get --check" | sed "s|00 20 * * *|00 ${cron_hour} |g"
+
     fi
 
 }
@@ -270,12 +308,12 @@ run_protonget() {
 
         printf "\n%s A new %s release is available: %s \n%s \n" "->" "${ge_proton_title}" "${ge_proton_remote_version}" "${ge_latest_url}"
         printf "\n%s \n%s %s\n" "-> Downloading using:" "wget --quiet --show-progress --progress=bar --content-disposition --continue " "${ge_latest_url}"
-        if [[ ! "${which_arg}" =~ -n|--dryrun ]];then
+        if [[ ! "${which_arg_0}" =~ -n|--dryrun ]];then
             wget --quiet --show-progress --progress=bar --content-disposition --continue "${ge_latest_url}"
         fi
 
         printf "\n-> Extracting using:\ntar --get --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
-        if [[ ! "${which_arg}" =~ -n|--dryrun ]];then
+        if [[ ! "${which_arg_0}" =~ -n|--dryrun ]];then
             tar --get --file "${ge_proton_file}" --directory="${steam_tools_folder}"
         fi
 
