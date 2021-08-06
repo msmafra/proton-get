@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 2.1.1                        #
+#                         Version: 2.5.0                        #
 #                       Copyright (C) 2021                      #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -42,7 +42,7 @@ declare ge_discord_url
 declare which_arg_0
 
 ge_proton_title="Proton-GE-Custom"
-PROTONGET_VERSION="2.1.1"
+PROTONGET_VERSION="2.5.0"
 SCRIPT_FOLDER="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 CURRENT_USER_BIN="${HOME}/.local/bin"
 user_id="$(id --user)"
