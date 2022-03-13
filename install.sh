@@ -9,39 +9,38 @@ set -o errtrace  # ERR trap is inherited by shell functions
 
 main() {
 
-    trap exit_stage_left EXIT ERR # Elegant exit
-    install
+  trap exit_stage_left EXIT ERR # Elegant exit
+  install
 }
 
 exit_stage_left() {
 
-    unset CURRENT_USER_BIN user_id user_name script_mode
-    printf "\n%s\n" "Bye!"
+  unset CURRENT_USER_BIN user_id user_name script_mode
+  printf "\n%s\n" "Bye!"
 
 }
 
 install() {
 
-    local CURRENT_USER_BIN
-    local user_id
-    local user_name
-    local script_mode
+  local CURRENT_USER_BIN
+  local user_id
+  local user_name
+  local script_mode
+  local xidel_url
 
-    CURRENT_USER_BIN="${HOME}/.local/bin"
-    user_id="$(id --user)"
-    user_name="$(id --user --name)"
-    script_mode="740"
+  CURRENT_USER_BIN="${HOME}/.local/bin"
+  user_id="$(id --user)"
+  user_name="$(id --user --name)"
+  script_mode="740"
+  xidel_url="https://gitlab.com/msmafra/proton-get/-/raw/master/xidel"
 
-    if [[ "${user_id}" -ne 0 ]];then
+  if [[ "${user_id}" -ne 0 ]];then
 
-        # cd "${CURRENT_USER_BIN}" && pwd
-        curl --silent --show-error --location https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get --output "${CURRENT_USER_BIN}"/proton-get
-        #wget https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get -O - >> proton-get
-        # cd "${CURRENT_USER_BIN}" && pwd
-        install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${CURRENT_USER_BIN}"/proton-get --target-directory="${CURRENT_USER_BIN}"
-        exit 0
+    curl --silent --show-error --location "${xidel_url}" --output "${CURRENT_USER_BIN}"/proton-get
+    install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${CURRENT_USER_BIN}"/proton-get --target-directory="${CURRENT_USER_BIN}"
+    exit 0
 
-    fi
+  fi
 
 }
 

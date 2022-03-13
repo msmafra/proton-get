@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 2.8.0                        #
+#                         Version: 2.8.1                        #
 #                       Copyright (C) 2021-2022                 #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -53,6 +53,7 @@ declare ge_proton_remote_version
 declare ge_proton_local_version
 declare xidel_version
 declare xidel_build
+declare -a compat_tools_path
 
 xidel_version="$(xidel --version | head --lines=1 | awk -F" " '{print $2}')"
 xidel_build="$(xidel --version | head --lines=2 | tail --lines=1)"
@@ -60,7 +61,7 @@ xidel_build="$(xidel --version | head --lines=2 | tail --lines=1)"
 which_arg_0="${*}"
 ge_proton_name=("GE-Proton" "Proton-")
 ge_proton_title="Proton-GE-Custom"
-PROTONGET_VERSION="2.8.0"
+PROTONGET_VERSION="2.8.1"
 ge_author="GloriousEggroll"
 ge_discord_url="https://discord.gg/6y3BdzC"
 SCRIPT_FOLDER="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
@@ -118,18 +119,25 @@ else
   ge_era="${ge_proton_name[1]}"
 
 fi
+if [[ ! "${which_arg_0}" =~ -v|--version ]];then
 
 ge_latest_url="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | grep "${ge_era}" | awk '{printf "%s%s\n","https://github.com", $1}' | head --lines=1)"
+
+fi
 ge_proton_file="$(printf "%s" "${ge_latest_url}" | awk -F"/" '{print $9}')"
 ge_proton_remote_version="${ge_proton_file%%.tar*}"
-declare -a compat_tools_path
-# steam_tools_folder="${HOME}/.local/share/Steam/compatibilitytools.d"
 compat_tools_path=("${HOME}/.var/app/com.valvesoftware.Steam/Games/compatibilitytools.d" "${HOME}/.local/share/Steam/compatibilitytools.d")
-for ctp in "${compat_tools_path}";do
+
+for ctp in "${compat_tools_path[@]}";do
+
   if [[ -d "${ctp}" ]];then
+
     steam_tools_folder="${ctp}"
+
   fi
+
 done
+
 ge_proton_local_version="$(find "${steam_tools_folder}/" -maxdepth 1 -name "*${ge_era}*" -type d | awk -F"/" '{print $8}' | sort --version-sort --reverse | head --lines=1)"
 
 exit_stage_left() {
@@ -241,24 +249,18 @@ main() {
 check_xidel() {
 
   local xidel_url
-  local xidel_file
 
   if [[ ! -f "${exec_xidel}" ]];then
 
     # Required
     cd "${temp_dir}" && pwd
-    xidel_url="https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz"
-    xidel_file="$(printf "%s" "${xidel_url}" | awk -F"/" '{print $9}')"
+    xidel_url="https://gitlab.com/msmafra/proton-get/-/raw/master/xidel"
 
     printf "%s\n- %s\n- %s\n" "Xidel not found. Info:" "http://www.videlibri.de/xidel.html" "by Benito van der Zander <benito@benibela.de>"
 
-    printf "%s %s\n" "Downloading xidel 0.9.8 (latest stable at 2021-06-28) to a temporary directory" "${temp_dir}"
+    printf "%s %s\n" "Downloading xidel 0.9.9 (latest stable at 2022-01-31) to a temporary directory" "${temp_dir}"
     cd "${temp_dir}" && pwd
-    wget --quiet --content-disposition --continue "${xidel_url}"
-
-    printf "\n%s\n" "-> Extracting files to ${temp_dir}"
-    cd "${temp_dir}" && pwd
-    tar --get --file "${xidel_file}" --directory="${temp_dir}"
+    wget --quiet --content-disposition --continue "${xidel_url}" --output-document="${temp_dir}"
 
     elif [[ -f "${HOME}"/.local/bin/xidel ]];then
 
@@ -278,11 +280,14 @@ show_version() {
   local xidel_exec
 
   printf "%s Local version of proton-get: %s\n" "->" "${PROTONGET_VERSION}"
+  printf "%s Local version of xidel: %s\n" "->" "${xidel_build}"
 
-  if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
-    xidel_exec="$(command -v xidel > /dev/null 2>&1)"
-    "${xidel_exec}" --version
-  fi
+  # if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
+  #
+  #   xidel_exec="$(command -v xidel > /dev/null 2>&1)"
+  #   "${xidel_exec}" --version
+  #
+  # fi
 
 }
 
@@ -312,7 +317,7 @@ self_update() {
   printf "Local version of proton-get: %s\n" "${PROTONGET_VERSION}"
   printf "Available version of proton-get: %s\n" "${available_version}"
 
-  if [[ ! "${PROTONGET_VERSION//./}" -le "${available_version//./}" ]];then
+  if [[ ! "${PROTONGET_VERSION//./}" -lt "${available_version//./}" ]];then
 
     if [[ -d "${CURRENT_USER_BIN}" ]];then
 
@@ -354,11 +359,11 @@ check_update() {
 
       printf "No new version available. Your latest Local version %s.\n" "${ge_proton_local_version}"
 
-        if [[ -d "${steam_tools_folder}" ]];then
+      if [[ -d "${steam_tools_folder}" ]];then
 
-          find "${steam_tools_folder}/" -maxdepth 1 -name "*${ge_era}*" -type d | awk -F"/" '{printf "\t%s\n",$8}' | sort --version-sort --reverse
+        find "${steam_tools_folder}/" -maxdepth 1 -name "*${ge_era}*" -type d | awk -F"/" '{printf "\t%s\n",$8}' | sort --version-sort --reverse
 
-        fi
+      fi
 
     fi
   fi
@@ -398,7 +403,7 @@ run_protonget() {
 
   # Available ones
   printf "\n%s Available %s releases (%s):\n" "->" "${ge_proton_title}" "${ge_count}"
-  # "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | awk -F"/" '{print $9}' | grep --invert-match "test" | awk -F"." '{print $1"."$2}'
+
   "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | awk -F"/" '{print $9}' | grep --invert-match "test" | awk -F"." '{printf "\t%s.%s\n",$1,$2}'
 
   # Current installed ones
@@ -434,7 +439,6 @@ run_protonget() {
 obtain_protonge() {
 
   # https://github.com/GloriousEggroll/proton-ge-custom/releases/download/6.16-GE-1/Proton-6.16-GE-1.tar.gz
-
   local get_ver
   local base_url
   get_ver="${*:2}"
