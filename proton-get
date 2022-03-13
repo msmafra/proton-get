@@ -2,27 +2,41 @@
 #################################################################
 #                                                               #
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 2.5.5                        #
-#                       Copyright (C) 2021                      #
+#                         Version: 2.8.0                        #
+#                       Copyright (C) 2021-2022                 #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
 #                                                               #
 #           https://gitlab.com/msmafra/proton-get               #
 #                                                               #
 #################################################################
+# Get the system defined language
+# declare sys_lang
+# sys_lang="$(locale | grep -E "LANG=" | sed 's#.*=## ; s#\..*##')"
 # Disable unicode.
 LC_ALL=C
 LANG=C
 #{{{ Bash settings
-set -o errexit
-set -o errtrace
+# set -o errexit
+# set -o errtrace
 set -o nounset
 set -o pipefail
 # set -o xtrace
 #}}}
 
+#ascii_art=<<'ASCIIART'
+#░▒█▀▀█░█▀▀▄░▄▀▀▄░▀█▀░▄▀▀▄░█▀▀▄░░░░▒█▀▀█░█▀▀░▀█▀
+#░▒█▄▄█░█▄▄▀░█░░█░░█░░█░░█░█░▒█░▀▀░▒█░▄▄░█▀▀░░█░
+#░▒█░░░░▀░▀▀░░▀▀░░░▀░░░▀▀░░▀░░▀░░░░▒█▄▄▀░▀▀▀░░▀░
+#ASCIIART
+
+declare which_arg_0
+declare -a ge_proton_name
+declare ge_era
 declare ge_proton_title
 export PROTONGET_VERSION
+declare ge_author
+declare ge_discord_url
 export SCRIPT_FOLDER
 export CURRENT_USER_BIN
 declare -i user_id
@@ -37,295 +51,396 @@ declare ge_latest_url
 declare ge_proton_file
 declare ge_proton_remote_version
 declare ge_proton_local_version
-declare ge_author
-declare ge_discord_url
-declare which_arg_0
+declare xidel_version
+declare xidel_build
 
+xidel_version="$(xidel --version | head --lines=1 | awk -F" " '{print $2}')"
+xidel_build="$(xidel --version | head --lines=2 | tail --lines=1)"
+
+which_arg_0="${*}"
+ge_proton_name=("GE-Proton" "Proton-")
 ge_proton_title="Proton-GE-Custom"
-PROTONGET_VERSION="2.5.5"
+PROTONGET_VERSION="2.8.0"
+ge_author="GloriousEggroll"
+ge_discord_url="https://discord.gg/6y3BdzC"
 SCRIPT_FOLDER="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 CURRENT_USER_BIN="${HOME}/.local/bin"
 user_id="$(id --user)"
 user_name="$(id --user --name)"
-temp_dir="$(mktemp --directory --suffix="${ge_proton_title}" | tee /dev/null 2>&1)"
-notify_send="$(command -v notify-send | tee /dev/null 2>&1)"
+curl_exec="$(command -v curl | tee /dev/null 2>&1)"
+wget_exec="$(command -v wget | tee /dev/null 2>&1)"
+xidel_git_url="https://gitlab.com/msmafra/proton-get/-/raw/master/xidel"
 exec_xidel="${HOME}/.local/bin/xidel"
-steam_tools_folder="${HOME}/.local/share/Steam/compatibilitytools.d"
+notify_send="$(command -v notify-send | tee /dev/null 2>&1)"
+
+if [[ ! $# -ge 0 && ! "${which_arg_0}" =~ -v|--version ]];then
+
+  temp_dir="$(mktemp --directory --suffix="${ge_proton_title}" | tee /dev/null 2>&1)"
+
+  if [[ -f "${exec_xidel}" ]];then
+
+    if [[ ! -x  "${exec_xidel}" ]];then
+
+      chmod --verbose +x "${exec_xidel}"
+
+    fi
+
+  else
+
+    if [[ "${curl_exec}" ]];then
+
+      cd /tmp && pwd && curl --silent "${xidel_git_url}"
+
+      elif [[ "${wget_exec}" ]];then
+
+      cd /tmp && pwd && wget --continue "${xidel_git_url}"
+
+    else
+
+      printf "Nor curl nor wget where found to download %s " "${xidel_git_url}"
+      exit 1
+
+    fi
+
+  fi
+
+fi
 ge_git_url="https://github.com/GloriousEggroll/proton-ge-custom"
-ge_releases_url="${ge_git_url}/releases"
-ge_latest_url="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | head -n 1)"
+ge_releases_url="${ge_git_url}/releases" # https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-9
+ge_latest_release_info_url="${ge_releases_url}/tag/"
+
+if [[ ! "${which_arg_0}" =~ -h|--help ]];then
+
+  ge_era="${ge_proton_name[0]}"
+
+else
+
+  ge_era="${ge_proton_name[1]}"
+
+fi
+
+ge_latest_url="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | grep "${ge_era}" | awk '{printf "%s%s\n","https://github.com", $1}' | head --lines=1)"
 ge_proton_file="$(printf "%s" "${ge_latest_url}" | awk -F"/" '{print $9}')"
 ge_proton_remote_version="${ge_proton_file%%.tar*}"
-ge_proton_local_version="$(find "${steam_tools_folder}/" -maxdepth 1 -name '*Proton*' -type d | awk -F"/" '{print $8}' | sort --version-sort --reverse | head --lines=1)"
-ge_author="GloriousEggroll"
-ge_discord_url="https://discord.gg/6y3BdzC"
-which_arg_0="${*}"
-
+declare -a compat_tools_path
+# steam_tools_folder="${HOME}/.local/share/Steam/compatibilitytools.d"
+compat_tools_path=("${HOME}/.var/app/com.valvesoftware.Steam/Games/compatibilitytools.d" "${HOME}/.local/share/Steam/compatibilitytools.d")
+for ctp in "${compat_tools_path}";do
+  if [[ -d "${ctp}" ]];then
+    steam_tools_folder="${ctp}"
+  fi
+done
+ge_proton_local_version="$(find "${steam_tools_folder}/" -maxdepth 1 -name "*${ge_era}*" -type d | awk -F"/" '{print $8}' | sort --version-sort --reverse | head --lines=1)"
 
 exit_stage_left() {
 
-    unset -v ge_proton_title which_arg_0 PROTONGET_VERSION SCRIPT_FOLDER CURRENT_USER_BIN user_id user_name temp_dir notify_send exec_xidel steam_tools_folder ge_git_url ge_releases_url ge_latest_url ge_proton_file ge_proton_remote_version ge_proton_local_version ge_author ge_discord_url raw_file available_version script_mode xidel_exec local xidel_url xidel_file ge_count cron_hour cron_day
-    unset -f check_xidel show_version show_usage self_update check_update run_protonget cron_protonget main
-    printf "%s\n" "All done. Bye!"
+  unset -v ge_proton_title which_arg_0 PROTONGET_VERSION SCRIPT_FOLDER CURRENT_USER_BIN user_id user_name temp_dir notify_send exec_xidel steam_tools_folder ge_git_url ge_releases_url ge_latest_url ge_proton_file ge_proton_remote_version ge_proton_local_version ge_author ge_discord_url raw_file available_version script_mode xidel_exec local xidel_url xidel_file ge_count cron_hour cron_day ge_era ge_proton_name
+  unset -f check_xidel show_version show_usage self_update check_update run_protonget cron_protonget main
+  printf "%s\n" "All done. Bye!"
 
 }
 
 main() {
 
-    printf "%s %s %s \n" "-> Arguments" "$#" "${*}"
+  printf "%s %s %s \n" "-> Arguments passed:" "$#" "${*}"
 
-    if [[ "${user_id}" -ne 0 ]];then
+  declare xidel_version
+  declare xidel_build
+  declare xidel_min_ver
 
-        if [[ "${which_arg_0}" =~ -c|--check ]];then
+  xidel_version="$(xidel --version | head --lines=1 | awk -F" " '{print $2}' | sed -e 's/^[0]*//' -e 's/\.//g')"
+  xidel_build="$(xidel --version | head --lines=2 | tail --lines=1)"
+  xidel_min_ver="$(echo "0.9.9" | sed -e 's/^[0]*//' -e 's/\.//g')"
 
-            show_version
-            check_update
-            exit 0
 
-        elif [[ "${which_arg_0}" =~ -i|--install|-n|--dryrun ]];then
+  if [[ "${xidel_version}" -lt "${xidel_min_ver}" ]];then
 
-            if [[ "${which_arg_0}" =~ -n|--dryrun ]];then
+    echo Error
 
-                printf "%s\n\n" "-> Dry Run Mode"
+  fi
 
-            fi
+  if [[ "${user_id}" -ne 0 ]];then
 
-            show_version
-            run_protonget
-            exit 0
+    if [[ "${which_arg_0}" =~ -c|--check ]];then
 
-        elif [[ "${which_arg_0}" =~ -v|--version ]];then
+      show_version
+      check_update
+      exit 0
 
-            show_version
-            exit 0
+      elif [[ "${which_arg_0}" =~ -i|--install|-n|--dryrun ]];then
 
-        elif [[ "${which_arg_0}" =~ -u|--update ]];then
+      if [[ "${which_arg_0}" =~ -n|--dryrun ]];then
 
-            show_version
-            self_update
-            exit 0
+        printf "%s\n\n" "-> Dry Run Mode"
 
-        elif [[ "${which_arg_0}" =~ -t|--time ]];then
+      fi
 
-            if [[ $# -ge 2  ]];then
+      show_version
+      run_protonget
+      exit 0
 
-                cron_protonget "${@}"
-                exit 0
+      elif [[ "${which_arg_0}" =~ -v|--version ]];then
 
-            else
+      show_version
+      exit 0
 
-                printf "%s\n" "Error"
-                exit 1
+      elif [[ "${which_arg_0}" =~ -u|--update ]];then
 
-            fi
+      show_version
+      self_update
+      exit 0
 
-        else
+      elif [[ "${which_arg_0}" =~ -t|--time ]];then
 
-            show_version
-            show_usage
-            self_update
-            exit 0
+      if [[ $# -ge 2  ]];then
 
-        fi
+        cron_protonget "${@}"
+        exit 0
+
+      else
+
+        exit 1
+        printf "%s\n" "Error"
+
+      fi
+
+      elif [[ "${which_arg_0}" =~ -g|--get ]];then
+
+      if [[ $# -ge 2  ]];then
+
+        obtain_protonge "${@}"
+        exit 0
+
+      else
+
+        exit 1
+        printf "%s\n" "Error"
+
+      fi
 
     else
 
-        printf "%s\n" "-> Usage of superuser (elevated privileges), is not allowed. Exiting."
-        exit 1
+      show_version
+      show_usage
+      self_update
+      exit 0
 
     fi
 
-    trap exit_stage_left ERR 0 SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM # Elegant exit
+  else
+
+    printf "%s\n" "-> Usage of superuser (elevated privileges), is not allowed. Exiting."
+    exit 1
+
+  fi
+
+  trap exit_stage_left ERR 0 SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM # Elegant exit
 
 }
 
 check_xidel() {
 
-    local xidel_url
-    local xidel_file
+  local xidel_url
+  local xidel_file
 
-    if [[ ! -f "${exec_xidel}" ]];then
+  if [[ ! -f "${exec_xidel}" ]];then
 
-        # Required
-        cd "${temp_dir}" && pwd
-        xidel_url="https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz"
-        xidel_file="$(printf "%s" "https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz" | awk -F"/" '{print $9}')"
+    # Required
+    cd "${temp_dir}" && pwd
+    xidel_url="https://github.com/benibela/xidel/releases/download/Xidel_0.9.8/xidel-0.9.8.linux64.tar.gz"
+    xidel_file="$(printf "%s" "${xidel_url}" | awk -F"/" '{print $9}')"
 
-        printf "%s\n- %s\n- %s\n" "Xidel not found. Info:" "http://www.videlibri.de/xidel.html" "by Benito van der Zander <benito@benibela.de>"
+    printf "%s\n- %s\n- %s\n" "Xidel not found. Info:" "http://www.videlibri.de/xidel.html" "by Benito van der Zander <benito@benibela.de>"
 
-        printf "%s %s\n" "Downloading xidel 0.9.8 (latest stable at 2021-06-28) to a temporary directory" "${temp_dir}"
-        cd "${temp_dir}" && pwd
-        wget --quiet --content-disposition --continue "${xidel_url}"
+    printf "%s %s\n" "Downloading xidel 0.9.8 (latest stable at 2021-06-28) to a temporary directory" "${temp_dir}"
+    cd "${temp_dir}" && pwd
+    wget --quiet --content-disposition --continue "${xidel_url}"
 
-        printf "\n%s\n" "-> Extracting files to ${temp_dir}"
-        cd "${temp_dir}" && pwd
-        tar --get --file "${xidel_file}" --directory="${temp_dir}"
+    printf "\n%s\n" "-> Extracting files to ${temp_dir}"
+    cd "${temp_dir}" && pwd
+    tar --get --file "${xidel_file}" --directory="${temp_dir}"
 
     elif [[ -f "${HOME}"/.local/bin/xidel ]];then
 
-        printf "%s\n%s%s\n" "-> An installed version of xidel found locally" "-> Using from" "${exec_xidel}"
+    printf "%s\n%s%s\n" "-> An Local version of xidel found locally" "-> Using it from" "${exec_xidel}"
 
-    else
+  else
 
-        exec_xidel="${temp_dir}/xidel"
-        printf "\n-> xidel found. using from %s" "${exec_xidel}"
+    exec_xidel="${temp_dir}/xidel"
+    printf "\n-> xidel found. using from %s" "${exec_xidel}"
 
-    fi
+  fi
 
 }
 
 show_version() {
 
-    local xidel_exec
+  local xidel_exec
 
-    printf "%s Installed version of proton-get: %s\n\n" "->" "${PROTONGET_VERSION}"
+  printf "%s Local version of proton-get: %s\n" "->" "${PROTONGET_VERSION}"
 
-    if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
-        xidel_exec="$(command -v xidel > /dev/null 2>&1)"
-        "${xidel_exec}" --version
-    fi
+  if [[ "$(command -v xidel > /dev/null 2>&1)" ]];then
+    xidel_exec="$(command -v xidel > /dev/null 2>&1)"
+    "${xidel_exec}" --version
+  fi
 
 }
 
 show_usage() {
 
-    printf "%s\n" "${ge_proton_title} downloader and installer: proton-get"
-    printf "\n%s\n" "Usage: $0 [OPTION] <arguments>"
-    printf "\t%s\t\t\t%s\n" "-i or --install" "will download and extract ${ge_proton_title}"
-    printf "\t%s\t\t\t%s\n" "-c or --check" "will just check for a new version of ${ge_proton_title}"
-    printf "\t%s\t\t\t%s\n" "-n or --dryrun" "will run proton-get without downloading and installing anything"
-    printf "\t%s\t\t\t%s\n" "-u or --update" "will check and install the latest version of proton-get"
-    printf "\t%s\t\t\t%s\n" "-v or --version" "will show the current proton-get version"
-    printf "\t%s\t\t%s\n\t\t\t\t\t%s\n\t\t\t\t\t%s\n" "-t or --time <hour>" "will create a schedule to run proton-get --check" "Running proton-get --time 20 will schedule it to run every day at 20:00" "<hour> can be a value from 0 to 23"
+  printf "%s\n" "${ge_proton_title} downloader and installer: proton-get"
+  printf "\n%s\n" "Usage: $0 [OPTION] <arguments>"
+  printf "\t%s\t\t\t%s\n" "-i or --install" "will download and extract ${ge_proton_title}"
+  printf "\t%s\t\t\t%s\n" "-c or --check" "will just check for a new version of ${ge_proton_title}"
+  printf "\t%s\t\t\t%s\n" "-n or --dryrun" "will run proton-get without downloading and installing anything"
+  printf "\t%s\t\t\t%s\n" "-u or --update" "will check and install the latest version of proton-get"
+  printf "\t%s\t\t\t%s\n" "-v or --version" "will show the current proton-get version"
+  printf "\t%s\t\t%s\n\t\t\t\t\t%s\n\t\t\t\t\t%s\n" "-t or --time <hour>" "will create a schedule to run proton-get --check" "Running proton-get --time 20 will schedule it to run every day at 20:00" "<hour> can be a value from 0 to 23"
 
 }
 
 self_update() {
 
-    local raw_file
-    local available_version
-    local script_mode
+  local raw_file
+  local available_version
+  local script_mode
 
-    raw_file="https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get"
-    available_version="$(curl --silent "${raw_file}" | tee /dev/null | grep --max-count=1 "PROTONGET_VERSION=" | awk -F'"' '{print $2}')"
-    script_mode="740"
+  raw_file="https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get"
+  available_version="$(curl --silent "${raw_file}" | tee /dev/null | grep --max-count=1 "PROTONGET_VERSION=" | awk -F'"' '{print $2}')"
+  script_mode="740"
 
-    printf "Installed version of proton-get: %s\n" "${PROTONGET_VERSION}"
-    printf "Available version of proton-get: %s\n" "${available_version}"
+  printf "Local version of proton-get: %s\n" "${PROTONGET_VERSION}"
+  printf "Available version of proton-get: %s\n" "${available_version}"
 
-    if [[ ! "${PROTONGET_VERSION//./}" -le "${available_version//./}" ]];then
+  if [[ ! "${PROTONGET_VERSION//./}" -le "${available_version//./}" ]];then
 
-        if [[ -d "${CURRENT_USER_BIN}" ]];then
+    if [[ -d "${CURRENT_USER_BIN}" ]];then
 
-            printf "%s %s\n" "-> Downloading " "${available_version}"
-            cd "${CURRENT_USER_BIN}" && pwd
-            \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
-            cd "${CURRENT_USER_BIN}" && pwd
-            install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${SCRIPT_FOLDER}"/proton-get --target-directory="${CURRENT_USER_BIN}"
-            exit 0
-
-        fi
-
-    else
-
-        printf "%s\n" "Can't be updated."
+      printf "%s %s\n" "-> Downloading " "${available_version}"
+      cd "${CURRENT_USER_BIN}" && pwd
+      \wget --quiet --show-progress --progress=bar --content-disposition --continue "${raw_file}"
+      cd "${CURRENT_USER_BIN}" && pwd
+      install --verbose -D -C --mode="${script_mode}" --owner="${user_name}" --group="${user_name}" "${SCRIPT_FOLDER}"/proton-get --target-directory="${CURRENT_USER_BIN}"
+      exit 0
 
     fi
+
+  else
+
+    printf "%s\n" "Can't be updated."
+
+  fi
 
 }
 
 check_update() {
 
 
-    if [[ "${which_arg_0}" =~ -c|--check ]];then
+  if [[ "${which_arg_0}" =~ -c|--check ]];then
 
-        if [[ ! ${ge_proton_remote_version} = "${ge_proton_local_version}" ]];then
+    if [[ ! ${ge_proton_remote_version} = "${ge_proton_local_version}" ]];then
 
-            printf "\n-> A new %s release is available: %s \n%s \n" "${ge_proton_title}" "${ge_proton_remote_version}" "${ge_latest_url}"
+      printf "\n-> New %s available: %s \nDownload from here \n%s\n" "${ge_proton_title}" "${ge_proton_remote_version}" "${ge_latest_url}"
+      printf "\nOr run proton-get -i on a terminal to install %s\n" "${ge_proton_remote_version}"
+      printf "\nInfo about this release %s" "${ge_latest_release_info_url}${ge_proton_remote_version}"
 
-            if [[ -e "${notify_send}" ]];then
+      if [[ -e "${notify_send}" ]];then
 
-                printf "Available version of proton-get: %s\n" "${ge_proton_remote_version}"
-                "${notify_send}" --urgency=critical "Proton Get" "A new ${ge_proton_title} release is available: ${ge_proton_remote_version}" -i 'dialog-warning'
+        "${notify_send}" --urgency=critical "Proton Get" "<b>${ge_proton_remote_version}</b> released. \nDownload from here ${ge_latest_url} \nor run <b>proton-get -i</b> on a terminal to install it.\nInfo about this release ${ge_latest_release_info_url}${ge_proton_remote_version}" -i 'dialog-warning'
 
-            else
+      fi
 
-                printf "Available version of proton-get: %s\n" "${ge_proton_remote_version}"
+    else
 
-            fi
+      printf "No new version available. Your latest Local version %s.\n" "${ge_proton_local_version}"
 
-        else
+        if [[ -d "${steam_tools_folder}" ]];then
 
-            printf "No new version available. Your latest installed version %s.\n" "${ge_proton_local_version}"
+          find "${steam_tools_folder}/" -maxdepth 1 -name "*${ge_era}*" -type d | awk -F"/" '{printf "\t%s\n",$8}' | sort --version-sort --reverse
 
         fi
+
     fi
+  fi
 
 }
 
 cron_protonget() {
 
-    local cron_hour
-    cron_hour="${*:2}"
+  local cron_hour
+  cron_hour="${*:2}"
 
-    if ! crontab -l | grep ".local/bin/proton-get --check";then
+  if ! crontab -l | grep ".local/bin/proton-get --check";then
 
-        printf "\n ->Running:\n %s %s %s %s " "(crontab -l 2>/dev/null; echo 00" "${cron_hour}" "* * *" "${CURRENT_USER_BIN}/proton-get --check) | crontab -"
-        (crontab -l 2>/dev/null; echo "00 ${cron_hour} * * * ${CURRENT_USER_BIN}/proton-get --check") | crontab -
-        sleep 3s
-        printf "\n-> Opening crontab to check with %s\n" "crontab -l -u ${USER}"
-        crontab -l
+    printf "\n ->Running:\n %s %s %s %s " "(crontab -l 2>/dev/null; echo 00" "${cron_hour}" "* * *" "${CURRENT_USER_BIN}/proton-get --check) | crontab -"
+    (crontab -l 2>/dev/null; echo "00 ${cron_hour} * * * ${CURRENT_USER_BIN}/proton-get --check") | crontab -
+    sleep 3s
+    printf "\n-> Opening crontab to check with %s\n" "crontab -l -u ${USER}"
+    crontab -l
 
-    else
+  else
 
-        printf "\n%s \n%s \n" "-> Unfortunetely it can't be changed by proton-get because it requires elevated privileges." "To customize it use crontab -e and use this generated line with the value you provided:"
-        crontab -l 2>/dev/null | grep ".local/bin/proton-get --check" | sed "s|00 20 * * *|00 ${cron_hour} |g"
+    printf "\n%s \n%s \n" "-> Unfortunetely it can't be changed by proton-get because it requires elevated privileges." "To customize it use crontab -e and use this generated line with the value you provided:"
+    crontab -l 2>/dev/null | grep ".local/bin/proton-get --check" | sed "s|00 20 * * *|00 ${cron_hour} |g"
 
-    fi
+  fi
 
 }
 
 run_protonget() {
 
-    local -i ge_count
-    ge_count=5
+  local -i ge_count
+  ge_count=5
 
-    printf "%s is a modified version of Valve's Proton by GloriousEggroll.\n%s" "${ge_proton_title}" "GloriousEggroll's description: Compatibility tool for Steam Play based on Wine and additional components"
-    printf "\nCheck the docs etc at %s." "${ge_git_url}"
-    printf "\nFor %s issues, bugs report to %s via Discord: %s\n"  "${ge_proton_title}" "${ge_author}" "${ge_discord_url}"
+  printf "%s is a modified version of Valve's Proton by GloriousEggroll.\n%s" "${ge_proton_title}" "GloriousEggroll's description: Compatibility tool for Steam Play based on Wine and additional components"
+  printf "\nCheck the docs etc at %s." "${ge_git_url}"
+  printf "\nFor %s issues, bugs report to %s via Discord: %s\n"  "${ge_proton_title}" "${ge_author}" "${ge_discord_url}"
 
-    # Available ones
-    printf "\n%s Available %s releases (%s):\n" "->" "${ge_proton_title}" "${ge_count}"
-    # "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | awk -F"/" '{print $9}' | grep --invert-match "test" | awk -F"." '{print $1"."$2}'
-    "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | awk -F"/" '{print $9}' | grep --invert-match "test" | awk -F"." '{printf "\t%s.%s\n",$1,$2}'
+  # Available ones
+  printf "\n%s Available %s releases (%s):\n" "->" "${ge_proton_title}" "${ge_count}"
+  # "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | awk -F"/" '{print $9}' | grep --invert-match "test" | awk -F"." '{print $1"."$2}'
+  "${exec_xidel}" --silent "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | awk '{printf "%s%s\n","https://github.com", $1}' | awk -F"/" '{print $9}' | grep --invert-match "test" | awk -F"." '{printf "\t%s.%s\n",$1,$2}'
 
-    # Current installed ones
-    printf "\n-> Installed %s releases:\n" "${ge_proton_title}"
-    find "${steam_tools_folder}/" -maxdepth 1 -name '*Proton*' -type d | awk -F"/" '{printf "\t%s\n",$8}' | sort --version-sort --reverse
+  # Current installed ones
+  printf "\n-> Installed %s releases:\n" "${ge_proton_title}"
+  find "${steam_tools_folder}/" -maxdepth 1 -name '*Proton*' -type d | awk -F"/" '{printf "\t%s\n",$8}' | sort --version-sort --reverse
 
-    # Check if is already installed before download
-    if [[ ! ${ge_proton_remote_version} = "${ge_proton_local_version}" ]];then
-        cd "${temp_dir}" && pwd
+  # Check if is already installed before download
+  if [[ ! ${ge_proton_remote_version} = "${ge_proton_local_version}" ]];then
+    cd "${temp_dir}" && pwd
 
-        printf "\n%s A new %s release is available: %s \n%s \n" "->" "${ge_proton_title}" "${ge_proton_remote_version}" "${ge_latest_url}"
-        printf "\n%s \n%s %s\n" "-> Downloading using:" "wget --quiet --show-progress --progress=bar --content-disposition --continue " "${ge_latest_url}"
-        if [[ ! "${which_arg_0}" =~ -n|--dryrun ]];then
-            wget --quiet --show-progress --progress=bar --content-disposition --continue "${ge_latest_url}"
-        fi
-
-        printf "\n-> Extracting using:\ntar --get --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
-        if [[ ! "${which_arg_0}" =~ -n|--dryrun ]];then
-            tar --get --file "${ge_proton_file}" --directory="${steam_tools_folder}"
-        fi
-
-        printf "\n%s was extracted/installed into %s\n" "-> ${ge_proton_file}" "${steam_tools_folder}"
-        printf "%s (%s) %s\n" "-> All files were downloaded to the temporary folder" "${temp_dir}" "before being installed."
-
-    else
-
-        printf "\n%s is the most recent one installed\n" "${ge_proton_file/%.tar.gz/}"
-
+    printf "\n%s A new %s release is available: %s \n%s \n" "->" "${ge_proton_title}" "${ge_proton_remote_version}" "${ge_latest_url}"
+    printf "\n%s \n%s %s\n" "-> Downloading using:" "wget --quiet --show-progress --progress=bar --content-disposition --continue " "${ge_latest_url}"
+    if [[ ! "${which_arg_0}" =~ -n|--dryrun ]];then
+      wget --quiet --show-progress --progress=bar --content-disposition --continue "${ge_latest_url}"
     fi
+
+    printf "\n-> Extracting using:\ntar --get --file %s --directory=%s\n" "${ge_proton_file}" "${steam_tools_folder}"
+    if [[ ! "${which_arg_0}" =~ -n|--dryrun ]];then
+      tar --get --file "${ge_proton_file}" --directory="${steam_tools_folder}"
+    fi
+
+    printf "\n%s was extracted/installed into %s\n" "-> ${ge_proton_file}" "${steam_tools_folder}"
+    printf "%s (%s) %s\n" "-> All files were downloaded to the temporary folder" "${temp_dir}" "before being installed."
+
+  else
+
+    printf "\n%s is the most recent one installed\n" "${ge_proton_file/%.tar.gz/}"
+
+  fi
+
+}
+
+obtain_protonge() {
+
+  # https://github.com/GloriousEggroll/proton-ge-custom/releases/download/6.16-GE-1/Proton-6.16-GE-1.tar.gz
+
+  local get_ver
+  local base_url
+  get_ver="${*:2}"
+  base_url="${ge_releases_url}/download/${get_ver}/Proton-${get_ver}.tar.gz"
+  printf "%s\n" "${base_url}"
+  wget --spider --no-verbose --show-progress --progress=dot "${base_url}"
 
 }
 

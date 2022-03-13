@@ -4,4 +4,11 @@
 - [x] implement proton-get --update to update without the need of git cloning;
 - [x] notify-send notification for systems with it installed;
 - [ ] implement list of available releases to choose installation of specific one;
-- [ ] ;
+- [ ] implement specific version downloading: proton-get -g/--get 6.5-GE-2;
+- [ ] add zenity dialogs (???);
+- [ ] portable version of zenity ()??);
+- [ ] proton-get autoupdate (?????);
+- [ ] check sum after downloading the file (!!!);
+- [x] update and check for xidel version. Despite 0.9.9 being under development, it is the dev recommended version;
+- [x] account for the new Proton GE files and folder nomenclature and versioning. Now GE-Proton-7-4 instead of Proton-GE-7.0-4;
+- [ ] also show the url for the release information page;
