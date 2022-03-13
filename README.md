@@ -74,9 +74,13 @@ protonget_dest="${HOME}/.local/bin" && cd /tmp && curl --silent https://gitlab.c
 ```
 
 ## Update problems? Run this:
-
 ```
-cd /tmp && curl --silent https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get > ~/.local/bin/proton-get
+pgpath="$HOME/.local/bin" && \
+mkdir -pv "${pgpath}" && cd /tmp && \
+curl -L https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get > "${pgpath}/proton-get" && \
+chmod +x "${pgpath}/proton-get"
+
 ```
 
 It will replace the contents of your current proton-get disrregarding its version.
+You can also install it this way, but you need Xidel in your system's $PATH to use it.
