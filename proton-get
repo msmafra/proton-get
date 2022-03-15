@@ -2,7 +2,7 @@
 #################################################################
 #                                                               #
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 2.8.1                        #
+#                         Version: 2.8.2                        #
 #                       Copyright (C) 2021-2022                 #
 #           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
 #       Licensed under the GNU General Public License v3.0      #
@@ -17,8 +17,8 @@
 LC_ALL=C
 LANG=C
 #{{{ Bash settings
-# set -o errexit
-# set -o errtrace
+set -o errexit
+set -o errtrace
 set -o nounset
 set -o pipefail
 # set -o xtrace
@@ -61,7 +61,7 @@ xidel_build="$(xidel --version | head --lines=2 | tail --lines=1)"
 which_arg_0="${*}"
 ge_proton_name=("GE-Proton" "Proton-")
 ge_proton_title="Proton-GE-Custom"
-PROTONGET_VERSION="2.8.1"
+PROTONGET_VERSION="2.8.2"
 ge_author="GloriousEggroll"
 ge_discord_url="https://discord.gg/6y3BdzC"
 SCRIPT_FOLDER="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
@@ -73,10 +73,11 @@ wget_exec="$(command -v wget | tee /dev/null 2>&1)"
 xidel_git_url="https://gitlab.com/msmafra/proton-get/-/raw/master/xidel"
 exec_xidel="${HOME}/.local/bin/xidel"
 notify_send="$(command -v notify-send | tee /dev/null 2>&1)"
+temp_dir="$(mktemp --directory --suffix="${ge_proton_title}" | tee /dev/null 2>&1)"
 
 if [[ ! $# -ge 0 && ! "${which_arg_0}" =~ -v|--version ]];then
 
-  temp_dir="$(mktemp --directory --suffix="${ge_proton_title}" | tee /dev/null 2>&1)"
+  # temp_dir="$(mktemp --directory --suffix="${ge_proton_title}" | tee /dev/null 2>&1)"
 
   if [[ -f "${exec_xidel}" ]];then
 
@@ -106,6 +107,7 @@ if [[ ! $# -ge 0 && ! "${which_arg_0}" =~ -v|--version ]];then
   fi
 
 fi
+
 ge_git_url="https://github.com/GloriousEggroll/proton-ge-custom"
 ge_releases_url="${ge_git_url}/releases" # https://github.com/GloriousEggroll/proton-ge-custom/releases/tag/GE-Proton7-9
 ge_latest_release_info_url="${ge_releases_url}/tag/"
@@ -119,11 +121,11 @@ else
   ge_era="${ge_proton_name[1]}"
 
 fi
-if [[ ! "${which_arg_0}" =~ -v|--version ]];then
+# if [[ ! "${which_arg_0}" =~ -v|--version ]];then
 
-ge_latest_url="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | grep "${ge_era}" | awk '{printf "%s%s\n","https://github.com", $1}' | head --lines=1)"
+  ge_latest_url="$("${exec_xidel}" -s "${ge_releases_url}" --xquery '//a/@href[contains(., ".tar.gz")]' | grep "releases" | grep "${ge_era}" | awk '{printf "%s%s\n","https://github.com", $1}' | head --lines=1)"
 
-fi
+# fi
 ge_proton_file="$(printf "%s" "${ge_latest_url}" | awk -F"/" '{print $9}')"
 ge_proton_remote_version="${ge_proton_file%%.tar*}"
 compat_tools_path=("${HOME}/.var/app/com.valvesoftware.Steam/Games/compatibilitytools.d" "${HOME}/.local/share/Steam/compatibilitytools.d")
