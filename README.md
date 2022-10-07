@@ -1,6 +1,6 @@
 # Proton Get
 
-![Proton GE Downloader](images/proton-get.png)
+![Proton GE Custom download tool](images/proton-get.png)
 
 Gets the latest version, compares with the installed one(s) of [Proton GE](https://github.com/GloriousEggroll/proton-ge-custom), downloads it and extracts to $HOME/.local/share/Steam/compatibilitytools.d/. It uses __wget__ and requires __xidel__ [Xidel](https://github.com/benibela/xidel/) to avoid messy, unpredictable regex inside a Bash script. To be less invasive it won't install Xidel. It is by default downloaded to a temporary folder to be used from there. Passing "1" as an argument for __setup.sh__, will install __xidel__ in $HOME/.local/bin.
 
@@ -58,17 +58,23 @@ To check for a new version of proton-get use -c --check:
 
 ### Parameters for proton-get
 ```
--c or --check will just check for a new version of Proton-GE-Custom
--i or --install will download and extract Proton-GE-Custom
--n or --dryrun  will run proton-get without downloading and installing anything
--u or --update will check and install the latest version of proton-get
--v or --version will show the current proton-get version
+-i or --install			will download and extract Proton-GE-Custom
+-c or --check			will just check for a new version of Proton-GE-Custom
+-n or --dryrun			will run proton-get without downloading and installing anything
+-u or --update			will check and install the latest version of proton-get
+-v or --version			will show the current proton-get version
 -t or --time <hour>		will create a schedule to run proton-get --check
-                Running proton-get --time 20 will schedule it to run every day at 20:00
-                <hour> can be a value from 0 to 23
+				Running proton-get --time 20 will schedule it to run every day at 20:00
+				<hour> can be a value from 0 to 23.
+				This can't be edit by proton-get because requires more priviledges.
+-g or --get			will downloads specified version of GE-Proton (not Proton-GE naming)
+				To download GE-Proton1-71: proton-get --get 1-71
+-a or --available		will show the last 10 available releases
+-l or --local			will show the current ones installed on your system
+-r or --remove			will remove the specified version. To remove GE-Proton1-71: proton-get --remove 1-71
 ```
-## Easy installed
-This one line runs 3 things: cd to change to the /tmp directory; curl to download only the proton-get script and at the as soon as it has finished downloading
+## Easy installation
+This one-liner runs 3 things: cd to change to the /tmp directory; curl to download only the proton-get script and at the as soon as it has finished downloading
 ```
 protonget_dest="${HOME}/.local/bin" && cd /tmp && curl --silent https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get > "${protonget_dest}"/proton-get && wget --continue https://gitlab.com/msmafra/proton-get/-/raw/master/xidel --output-document="${protonget_dest}"/xidel && chmod +x "${protonget_dest}"/xidel
 ```
@@ -83,4 +89,3 @@ chmod +x "${pgpath}/proton-get"
 ```
 
 It will replace the contents of your current proton-get disrregarding its version.
-You can also install it this way, but you need Xidel in your system's $PATH to use it.
