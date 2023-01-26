@@ -1,33 +1,21 @@
 #!/usr/bin/env bash
 #################################################################
-#                                                               #
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 3.0.0                        #
-#                       Copyright (C) 2021-2022                 #
-#           Marcelo dos Santos Mafra <msmafra@gmail.com>        #
+#                         Version: 3.0.1                        #
 #       Licensed under the GNU General Public License v3.0      #
-#                                                               #
 #           https://gitlab.com/msmafra/proton-get               #
 #                                                               #
 #################################################################
-#
-#
-#
+declare PROTONGET_VERSIO-"3.0.1"
 LC_ALL=C
 LANG=C
-# Bash settings
-set -o errexit
-set -o errtrace
-set -o nounset
-set -o pipefail
-# set -o xtrace
+
 
 declare which_arg_0
 declare -a ge_proton_name
 declare ge_era
 declare ge_proton_title
 declare -i ge_count
-export PROTONGET_VERSION
 declare ge_author
 declare ge_discord_url
 export SCRIPT_FOLDER
@@ -62,11 +50,11 @@ declare ge_regex
 declare ge_checksum_url
 declare ge_remote_url
 declare rm_exec
+declare steam_tools_folder
 
 SCRIPT_FOLDER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CURRENT_USER_BIN="${HOME}/.local/bin"
 which_arg_0="${*}"
-PROTONGET_VERSION="3.0.0"
 user_id="$(id --user)"
 user_name="$(id --user --name)"
 curl_exec="$(command -v curl | tee /dev/null 2>&1)"
