@@ -9,8 +9,6 @@
 declare PROTONGET_VERSIO-"3.0.1"
 LC_ALL=C
 LANG=C
-
-
 declare which_arg_0
 declare -a ge_proton_name
 declare ge_era
