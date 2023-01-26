@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #################################################################
 #    Proton-GE-Custom downloader and installer - proton-get     #
-#                         Version: 3.0.1                        #
+#                         Version: 3.0.2                        #
 #       Licensed under the GNU General Public License v3.0      #
 #           https://gitlab.com/msmafra/proton-get               #
 #                                                               #
 #################################################################
-declare PROTONGET_VERSIO-"3.0.1"
+declare PROTONGET_VERSION="3.0.2"
 LC_ALL=C
 LANG=C
 declare which_arg_0
@@ -402,7 +402,7 @@ self_update() {
   local script_mode
 
   protonget_raw_file="https://gitlab.com/msmafra/proton-get/-/raw/master/proton-get"
-  protonget_available_version="$("${curl_exec}" --silent "${protonget_raw_file}" | tee /dev/null 2>&1 | "${grep_exec}" --max-count=1 "PROTONGET_VERSION=" | awk -F'"' '{print $2}')"
+  protonget_available_version="$(\curl --silent ${protonget_raw_file} | \tee /dev/null 2>&1 | \grep --max-count=1 \"PROTONGET_VERSION=\" | \awk -F'"' '{print $2}')"
   script_mode="740"
 
   printf "Local version of proton-get: %s\n" "${PROTONGET_VERSION}"
